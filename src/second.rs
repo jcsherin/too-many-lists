@@ -1,5 +1,3 @@
-use std::mem;
-
 pub struct List {
     head: Link,
 }
@@ -19,14 +17,14 @@ impl List {
     pub fn push(&mut self, elem: i32) {
         let new_node = Box::new(Node {
             elem: elem,
-            next: mem::replace(&mut self.head, None),
+            next: self.head.take(),
         });
 
         self.head = Some(new_node);
     }
 
     pub fn pop(&mut self) -> Option<i32> {
-        match mem::replace(&mut self.head, None) {
+        match self.head.take() {
             None => None,
             Some(node) => {
                 self.head = node.next;
@@ -38,9 +36,9 @@ impl List {
 
 impl Drop for List {
     fn drop(&mut self) {
-        let mut curr_link = mem::replace(&mut self.head, None);
+        let mut curr_link = self.head.take();
         while let Some(mut boxed_node) = curr_link {
-            curr_link = mem::replace(&mut boxed_node.next, None)
+            curr_link = boxed_node.next.take()
             // boxed_node goes out of scope and gets dropped here;
             // but it's Node's `next` field has been set to `None`
             // so no unbounded recursion occurs.
