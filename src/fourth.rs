@@ -90,6 +90,23 @@ impl<T> List<T> {
         })
     }
 
+    pub fn pop_back(&mut self) -> Option<T> {
+        self.tail.take().map(|old_tail| {
+            match old_tail.borrow_mut().prev.take() {
+                Some(new_tail) => {
+                    // not emptying list
+                    new_tail.borrow_mut().next.take();
+                    self.tail = Some(new_tail);
+                }
+                None => {
+                    // emptying list
+                    self.head.take();
+                }
+            }
+            Rc::try_unwrap(old_tail).ok().unwrap().into_inner().elem
+        })
+    }
+
     pub fn peek_front(&self) -> Option<Ref<T>> {
         self.head
             .as_ref()
